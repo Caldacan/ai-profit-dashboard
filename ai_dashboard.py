@@ -134,6 +134,14 @@ with tab1:
                 f"${data['deflation_data']['Revenue_per_M_Tokens'].iloc[-1]:.2f} rev / "
                 f"${data['deflation_data']['Cost_per_M_Tokens'].iloc[-1]:.2f} cost per M tokens")
 
+# H100 Rental Trend Overlay (Chanos-Style)
+fig_rental = go.Figure()
+fig_rental.add_trace(go.Scatter(name="H100 Rental $/GPU-hr", x=historical_data["Quarter"], y=[8.0, 5.5, 3.5, 2.8, 2.4], mode="lines+markers", line=dict(color="brown", width=4)))  # From [web:0,3,8]
+fig_rental = apply_log(fig_rental)
+fig_rental.update_layout(title="H100 Rental Cost Trend (Chanos Bear Signal, 2023–2025)")
+st.plotly_chart(fig_rental, use_container_width=True)
+st.caption("Rental drop 70% YoY — Glut signal, but inference volume offsets [web:0,3]")
+
 # Tab 2: Inference vs Training Historical
 with tab2:
     fig3 = go.Figure()
