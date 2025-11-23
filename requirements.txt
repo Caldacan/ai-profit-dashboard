@@ -3,3 +3,4 @@ plotly
 pandas
 beautifulsoup4
 requests
+yfinance
