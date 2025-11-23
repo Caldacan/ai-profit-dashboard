@@ -108,7 +108,7 @@ with tab1:
         )
         st.plotly_chart(fig1, use_container_width=True)
         
-        # Bottom: H100 Rental Trend (stacked directly below, balanced height)
+               # Bottom: H100 Rental Trend + Energy Floor Line
         fig_rental = go.Figure()
         fig_rental.add_trace(go.Scatter(
             name="H100 Rental $/GPU-hr",
@@ -116,15 +116,24 @@ with tab1:
             y=[8.0, 5.5, 3.5, 2.8, 2.4],
             mode="lines+markers",
             line=dict(color="brown", width=5),
-            marker=dict(size=8)
+            marker=dict(size=10)
         ))
+        # Critical red energy floor line
+        fig_rental.add_hline(
+            y=0.60,
+            line=dict(color="red", width=4, dash="dash"),
+            annotation_text="Energy Cost Floor (~$0.60/hr)",
+            annotation_position="bottom right",
+            annotation_font_color="red",
+            annotation_font_size=14
+        )
         fig_rental = apply_log(fig_rental)
         fig_rental.update_layout(
-            title="H100 Rental Cost Trend (Chanos Signal, 2023–2025)", 
-            height=380  # Matches bottom-right for alignment
+            title="H100 Rental Cost Trend (Chanos Signal + Energy Floor)",
+            height=380
         )
         st.plotly_chart(fig_rental, use_container_width=True)
-        st.caption("Rental ~70% YoY drop — glut signal, but inference absorbs it")
+        st.caption("Rental ~70% YoY drop — still 4× above energy floor. Below $0.60 = losing money on power alone.")
     
     # RIGHT COLUMN: CapEx/Util (top) + Deflation (bottom) — tight vertical stack
     with col2:
