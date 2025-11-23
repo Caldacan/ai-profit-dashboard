@@ -89,64 +89,53 @@ def apply_log(fig):
 # Tabs
 tab1, tab2, tab3, tab4 = st.tabs(["Profit & CapEx (w/ Deflation)", "Inference vs Training", "AI Job Loss Risk", "Live Pricing"])
 
-# Tab 1: Historical Profit/CapEx + Deflation Subplot
+# ——— TAB 1: Profit & CapEx + H100 Rental (clean layout) ———
 with tab1:
-    col1, col2 = st.columns(2)
-    with col1:
-        fig1 = go.Figure()
-        fig1.add_trace(go.Bar(name="Revenue", x=data["historical_data"].Quarter, y=data["historical_data"]["Inference_Revenue_B"], marker_color="#10a337"))
-        fig1.add_trace(go.Bar(name="Cost", x=data["historical_data"].Quarter, y=data["historical_data"]["Inference_Cost_B"], marker_color="#c91a1a"))
-        fig1 = apply_log(fig1)
-        fig1.update_layout(barmode="group", title="Inference Revenue vs Cost ($B TTM, 2023–2025)")
-        st.plotly_chart(fig1, use_container_width=True)
+    # Left column: Revenue vs Cost + H100 rental stacked vertically
+    with st.container():
+        col_left = st.columns([1])[0]  # Full width for left side
+        
+        with col_left:
+            # 1. Inference Revenue vs Cost (top)
+            fig1 = go.Figure()
+            fig1.add_trace(go.Bar(name="Revenue", x=data["historical_data"]["Quarter"], y=data["historical_data"]["Inference_Revenue_B"], marker_color="#10a337"))
+            fig1.add_trace(go.Bar(name="Cost", x=data["historical_data"]["Quarter"], y=data["historical_data"]["Inference_Cost_B"], marker_color="#c91a1a"))
+            fig1 = apply_log(fig1)
+            fig1.update_layout(barmode="group", title="Inference Revenue vs Cost ($B TTM, 2023–2025)", height=500)
+            st.plotly_chart(fig1, use_container_width=True)
 
-    with col2:
+            # 2. H100 Rental Trend — now directly underneath
+            fig_rental = go.Figure()
+            fig_rental.add_trace(go.Scatter(
+                name="H100 Rental $/GPU-hr",
+                x=data["historical_data"]["Quarter"],
+                y=[8.0, 5.5, 3.5, 2.8, 2.4],
+                mode="lines+markers",
+                line=dict(color="brown", width=5),
+                marker=dict(size=10)
+            ))
+            fig_rental = apply_log(fig_rental)
+            fig_rental.update_layout(title="H100 Rental Cost Trend (Chanos Bear Signal, 2023–2025)", height=400)
+            st.plotly_chart(fig_rental, use_container_width=True)
+            st.caption("Rental price dropped ~70% YoY — glut signal, but inference volume absorbs it")
+
+    # Right column: CapEx + Utilization + Deflation (unchanged)
+    with st.columns([1, 1])[1]:
         fig2 = make_subplots(specs=[[{"secondary_y": True}]])
-        fig2.add_trace(go.Bar(name="AI CapEx $B", x=data["historical_data"].Quarter, y=data["historical_data"]["AI_CapEx_B"], marker_color="orange"), secondary_y=False)
-        fig2.add_trace(go.Scatter(name="Utilization %", x=data["historical_data"].Quarter, y=data["historical_data"]["Utilization_pct"], mode="lines+markers", line=dict(width=5, color="purple")), secondary_y=True)
+        fig2.add_trace(go.Bar(name="AI CapEx $B", x=data["historical_data"]["Quarter"], y=data["historical_data"]["AI_CapEx_B"], marker_color="orange"), secondary_y=False)
+        fig2.add_trace(go.Scatter(name="Utilization %", x=data["historical_data"]["Quarter"], y=data["historical_data"]["Utilization_pct"], mode="lines+markers", line=dict(width=5, color="purple")), secondary_y=True)
         fig2 = apply_log(fig2)
-        fig2.update_layout(title="Hyperscaler CapEx vs Utilization (2023–2025)")
+        fig2.update_layout(title="Hyperscaler CapEx vs Utilization (2023–2025)", height=500)
         st.plotly_chart(fig2, use_container_width=True)
-        
-        # Deflation Subplot (FIXED — uses underscore column names)
-        fig_def = make_subplots(specs=[[{"secondary_y": True}]])
-        fig_def.add_trace(go.Scatter(
-            name="Revenue/M Tokens",
-            x=data["deflation_data"]["Quarter"],
-            y=data["deflation_data"]["Revenue_per_M_Tokens"],   # ← fixed key
-            mode="lines+markers",
-            line=dict(color="green")
-        ), secondary_y=False)
-        
-        fig_def.add_trace(go.Scatter(
-            name="Cost/M Tokens",
-            x=data["deflation_data"]["Quarter"],
-            y=data["deflation_data"]["Cost_per_M_Tokens"],       # ← fixed key
-            mode="lines+markers",
-            line=dict(color="red")
-        ), secondary_y=True)
-        
-        fig_def = apply_log(fig_def)
-        fig_def.update_layout(title="Price Deflation Trend (Blended, 2022–2025)")
-        st.plotly_chart(fig_def, use_container_width=True)
-        
-        st.info(f"280x drop since 2022 — Latest Q3 2025: "
-                f"${data['deflation_data']['Revenue_per_M_Tokens'].iloc[-1]:.2f} rev / "
-                f"${data['deflation_data']['Cost_per_M_Tokens'].iloc[-1]:.2f} cost per M tokens")
 
- # H100 Rental Trend Overlay (Chanos-Style) – FIXED
-        fig_rental = go.Figure()
-        fig_rental.add_trace(go.Scatter(
-            name="H100 Rental $/GPU-hr",
-            x=data["historical_data"]["Quarter"],          # ← fixed: data["historical_data"]
-            y=[8.0, 5.5, 3.5, 2.8, 2.4],                   # real trend 2023→Q3 2025
-            mode="lines+markers",
-            line=dict(color="brown", width=5)
-        ))
-        fig_rental = apply_log(fig_rental)
-        fig_rental.update_layout(title="H100 Rental Cost Trend (Chanos Bear Signal, 2023–2025)")
-        st.plotly_chart(fig_rental, use_container_width=True)
-        st.caption("Rental price dropped ~70% YoY — glut signal, but inference volume absorbs it")
+        # Deflation subplot
+        fig_def = make_subplots(specs=[[{"secondary_y": True}]])
+        fig_def.add_trace(go.Scatter(name="Revenue/M Tokens", x=data["deflation_data"]["Quarter"], y=data["deflation_data"]["Revenue_per_M_Tokens"], mode="lines+markers", line=dict(color="green")), secondary_y=False)
+        fig_def.add_trace(go.Scatter(name="Cost/M Tokens", x=data["deflation_data"]["Quarter"], y=data["deflation_data"]["Cost_per_M_Tokens"], mode="lines+markers", line=dict(color="red")), secondary_y=True)
+        fig_def = apply_log(fig_def)
+        fig_def.update_layout(title="Price Deflation Trend (Blended, 2022–2025)", height=400)
+        st.plotly_chart(fig_def, use_container_width=True)
+        st.info(f"280x drop since 2022 — Latest: ${data['deflation_data']['Revenue_per_M_Tokens'].iloc[-1]:.2f} rev / ${data['deflation_data']['Cost_per_M_Tokens'].iloc[-1]:.2f} cost per M tokens")
 
 # Tab 2: Inference vs Training Historical
 with tab2:
