@@ -89,14 +89,14 @@ def apply_log(fig):
 # Tabs
 tab1, tab2, tab3, tab4 = st.tabs(["Profit & CapEx (w/ Deflation)", "Inference vs Training", "AI Job Loss Risk", "Live Pricing"])
 
-# ——— TAB 1: Profit & CapEx + H100 Rental (Balanced 2x2 w/ More Resolution) ———
+# ——— TAB 1: Profit & CapEx + H100 Rental (Balanced 2x2, No Gap Error) ———
 with tab1:
-    # Strict 2x2 columns with no gap for tight layout
-    col1, col2 = st.columns(2, gap=0)
+    # Strict 2x2 columns (no gap param = default "small", minimal space)
+    col1, col2 = st.columns(2)  # Omit gap=0 to avoid error
     
-    # LEFT COLUMN: Revenue (top, taller) + H100 Rental (bottom, balanced)
+    # LEFT COLUMN: Revenue (top) + H100 Rental (bottom) — tight vertical stack
     with col1:
-        # Top: Inference Revenue vs Cost (increased height for resolution)
+        # Top: Inference Revenue vs Cost (taller for resolution)
         fig1 = go.Figure()
         fig1.add_trace(go.Bar(name="Revenue", x=data["historical_data"]["Quarter"], y=data["historical_data"]["Inference_Revenue_B"], marker_color="#10a337"))
         fig1.add_trace(go.Bar(name="Cost", x=data["historical_data"]["Quarter"], y=data["historical_data"]["Inference_Cost_B"], marker_color="#c91a1a"))
@@ -104,11 +104,11 @@ with tab1:
         fig1.update_layout(
             barmode="group", 
             title="Inference Revenue vs Cost ($B TTM, 2023–2025)", 
-            height=420  # Taller for better bar resolution
+            height=420  # Ample vertical range for bars
         )
         st.plotly_chart(fig1, use_container_width=True)
         
-        # Bottom: H100 Rental Trend (matched height, no gap)
+        # Bottom: H100 Rental Trend (stacked directly below, balanced height)
         fig_rental = go.Figure()
         fig_rental.add_trace(go.Scatter(
             name="H100 Rental $/GPU-hr",
@@ -121,32 +121,32 @@ with tab1:
         fig_rental = apply_log(fig_rental)
         fig_rental.update_layout(
             title="H100 Rental Cost Trend (Chanos Signal, 2023–2025)", 
-            height=380  # Balanced taller for line detail
+            height=380  # Matches bottom-right for alignment
         )
         st.plotly_chart(fig_rental, use_container_width=True)
         st.caption("Rental ~70% YoY drop — glut signal, but inference absorbs it")
     
-    # RIGHT COLUMN: CapEx/Util (top, taller) + Deflation (bottom, balanced)
+    # RIGHT COLUMN: CapEx/Util (top) + Deflation (bottom) — tight vertical stack
     with col2:
-        # Top: CapEx vs Utilization Subplot (increased height)
+        # Top: CapEx vs Utilization Subplot (taller for resolution)
         fig2 = make_subplots(specs=[[{"secondary_y": True}]])
         fig2.add_trace(go.Bar(name="AI CapEx $B", x=data["historical_data"]["Quarter"], y=data["historical_data"]["AI_CapEx_B"], marker_color="orange"), secondary_y=False)
         fig2.add_trace(go.Scatter(name="Utilization %", x=data["historical_data"]["Quarter"], y=data["historical_data"]["Utilization_pct"], mode="lines+markers", line=dict(width=5, color="purple")), secondary_y=True)
         fig2 = apply_log(fig2)
         fig2.update_layout(
             title="Hyperscaler CapEx vs Utilization (2023–2025)", 
-            height=420  # Taller for subplot detail
+            height=420  # Ample vertical range for subplot
         )
         st.plotly_chart(fig2, use_container_width=True)
         
-        # Bottom: Deflation Subplot (matched height, more resolution on plunge)
+        # Bottom: Deflation Subplot (stacked directly below, balanced height)
         fig_def = make_subplots(specs=[[{"secondary_y": True}]])
         fig_def.add_trace(go.Scatter(name="Revenue/M Tokens", x=data["deflation_data"]["Quarter"], y=data["deflation_data"]["Revenue_per_M_Tokens"], mode="lines+markers", line=dict(color="green")), secondary_y=False)
         fig_def.add_trace(go.Scatter(name="Cost/M Tokens", x=data["deflation_data"]["Quarter"], y=data["deflation_data"]["Cost_per_M_Tokens"], mode="lines+markers", line=dict(color="red")), secondary_y=True)
         fig_def = apply_log(fig_def)
         fig_def.update_layout(
             title="Price Deflation Trend (Blended, 2022–2025)", 
-            height=380  # Balanced taller for curve visibility
+            height=380  # Matches left bottom for perfect alignment
         )
         st.plotly_chart(fig_def, use_container_width=True)
         st.info(f"280x drop since 2022 — Latest Q3 2025: ${data['deflation_data']['Revenue_per_M_Tokens'].iloc[-1]:.2f} rev / ${data['deflation_data']['Cost_per_M_Tokens'].iloc[-1]:.2f} cost per M tokens")
