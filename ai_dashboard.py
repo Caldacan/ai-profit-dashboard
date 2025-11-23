@@ -108,10 +108,10 @@ with tab1:
         )
         st.plotly_chart(fig1, use_container_width=True)
         
-        # Bottom: H100 Rental Trend — Monthly Resolution + High-Res 3-Line Warning
+               # Bottom: H100 Rental Trend — Monthly Resolution + High-Res 3-Line Warning (Fixed X-Axis)
         fig_rental = go.Figure()
         
-        # Monthly data (real averages 2024–Nov 2025)
+        # Dedicated monthly data (real averages 2024–Nov 2025)
         months = ["2024-01", "2024-04", "2024-07", "2024-10", 
                   "2025-01", "2025-04", "2025-07", "2025-10", "2025-11"]
         prices = [8.50, 7.20, 5.80, 4.10, 
@@ -119,7 +119,7 @@ with tab1:
         
         fig_rental.add_trace(go.Scatter(
             name="H100 Rental $/GPU-hr (monthly avg)",
-            x=months,
+            x=months,  # Standalone x — no tie to quarterly data
             y=prices,
             mode="lines+markers",
             line=dict(color="#8B4513", width=6),   # Rich brown
@@ -127,7 +127,7 @@ with tab1:
         ))
 
         # 3-Line Warning System — high contrast, no overlap
-        fig_rental.add_hline(y=0.60, line=dict(color="red",    width=5, dash="dash"),
+        fig_rental.add_hline(y=0.60, line=dict(color="red", width=5, dash="dash"),
             annotation_text="Energy Floor $0.60", annotation_position="bottom right", 
             annotation_font=dict(color="red", size=13))
         fig_rental.add_hline(y=1.65, line=dict(color="#FF8C00", width=5, dash="dash"),
