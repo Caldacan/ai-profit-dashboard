@@ -108,14 +108,31 @@ with tab1:
         fig2.update_layout(title="Hyperscaler CapEx vs Utilization (2023–2025)")
         st.plotly_chart(fig2, use_container_width=True)
         
-        # Deflation Subplot (Restored)
+        # Deflation Subplot (FIXED — uses underscore column names)
         fig_def = make_subplots(specs=[[{"secondary_y": True}]])
-        fig_def.add_trace(go.Scatter(name="Revenue/M Tokens", x=data["deflation_data"].Quarter, y=data["deflation_data"]["Revenue per M Tokens"], mode="lines+markers", line=dict(color="green")), secondary_y=False)
-        fig_def.add_trace(go.Scatter(name="Cost/M Tokens", x=data["deflation_data"].Quarter, y=data["deflation_data"]["Cost per M Tokens"], mode="lines+markers", line=dict(color="red")), secondary_y=True)
+        fig_def.add_trace(go.Scatter(
+            name="Revenue/M Tokens",
+            x=data["deflation_data"]["Quarter"],
+            y=data["deflation_data"]["Revenue_per_M_Tokens"],   # ← fixed key
+            mode="lines+markers",
+            line=dict(color="green")
+        ), secondary_y=False)
+        
+        fig_def.add_trace(go.Scatter(
+            name="Cost/M Tokens",
+            x=data["deflation_data"]["Quarter"],
+            y=data["deflation_data"]["Cost_per_M_Tokens"],       # ← fixed key
+            mode="lines+markers",
+            line=dict(color="red")
+        ), secondary_y=True)
+        
         fig_def = apply_log(fig_def)
         fig_def.update_layout(title="Price Deflation Trend (Blended, 2022–2025)")
         st.plotly_chart(fig_def, use_container_width=True)
-        st.info("280x drop since 2022 — Latest Q3 2025: $0.34 rev / $0.05 cost per M tokens ")
+        
+        st.info(f"280x drop since 2022 — Latest Q3 2025: "
+                f"${data['deflation_data']['Revenue_per_M_Tokens'].iloc[-1]:.2f} rev / "
+                f"${data['deflation_data']['Cost_per_M_Tokens'].iloc[-1]:.2f} cost per M tokens")
 
 # Tab 2: Inference vs Training Historical
 with tab2:
