@@ -108,10 +108,10 @@ with tab1:
         )
         st.plotly_chart(fig1, use_container_width=True)
         
-               # Bottom: H100 Rental Trend — Monthly Resolution + High-Res 3-Line Warning (Fixed X-Axis)
+        # Bottom: H100 Rental Trend — Expanded Resolution + Relocated Warnings (No Compression)
         fig_rental = go.Figure()
         
-        # Dedicated monthly data (real averages 2024–Nov 2025)
+        # Monthly data (real averages 2024–Nov 2025)
         months = ["2024-01", "2024-04", "2024-07", "2024-10", 
                   "2025-01", "2025-04", "2025-07", "2025-10", "2025-11"]
         prices = [8.50, 7.20, 5.80, 4.10, 
@@ -119,32 +119,44 @@ with tab1:
         
         fig_rental.add_trace(go.Scatter(
             name="H100 Rental $/GPU-hr (monthly avg)",
-            x=months,  # Standalone x — no tie to quarterly data
+            x=months,
             y=prices,
             mode="lines+markers",
-            line=dict(color="#8B4513", width=6),   # Rich brown
+            line=dict(color="#8B4513", width=6),
             marker=dict(size=11)
         ))
 
-        # 3-Line Warning System — high contrast, no overlap
-        fig_rental.add_hline(y=0.60, line=dict(color="red", width=5, dash="dash"),
-            annotation_text="Energy Floor $0.60", annotation_position="bottom right", 
-            annotation_font=dict(color="red", size=13))
-        fig_rental.add_hline(y=1.65, line=dict(color="#FF8C00", width=5, dash="dash"),
-            annotation_text="Full-Cost Breakeven $1.65", annotation_position="bottom right")
-        fig_rental.add_hline(y=2.60, line=dict(color="#FFD700", width=5, dash="dash"),
-            annotation_text="Debt-Cover Breakeven $2.60", annotation_position="top right",
-            annotation_font=dict(color="#B8860B", size=13))
+        # 3-Line Warning System — relocated left to free right space
+        fig_rental.add_hline(
+            y=0.60, 
+            line=dict(color="red", width=5, dash="dash"),
+            annotation_text="Energy Floor $0.60", 
+            annotation_position="left",  # ← left side, no right crowding
+            annotation_font=dict(color="red", size=13)
+        )
+        fig_rental.add_hline(
+            y=1.65, 
+            line=dict(color="#FF8C00", width=5, dash="dash"),
+            annotation_text="Full-Cost Breakeven $1.65", 
+            annotation_position="left"
+        )
+        fig_rental.add_hline(
+            y=2.60, 
+            line=dict(color="#FFD700", width=5, dash="dash"),
+            annotation_text="Debt-Cover Breakeven $2.60", 
+            annotation_position="left",
+            annotation_font=dict(color="#B8860B", size=13)
+        )
 
         fig_rental = apply_log(fig_rental)
         fig_rental.update_layout(
             title="H100 Rental Cost Trend — Monthly (Chanos Signal + 3-Line Warning)",
-            height=420,   # Max resolution without breaking layout
-            yaxis_title="$/GPU-hr"
+            height=450,   # Extra vertical for resolution
+            yaxis_title="$/GPU-hr",
+            yaxis=dict(range=[-1, 1])  # Tight log range: $0.10–$10 (cuts low mag, expands data space)
         )
         st.plotly_chart(fig_rental, use_container_width=True)
-        st.caption("Nov 2025 monthly avg = $2.37 — only 8% above debt-cover line. "
-                   "Another 8–10% drop = negative cash flow for levered providers.")
+        st.caption("Nov 2025 avg = $2.37 — 8% above debt-cover. Tight range focuses on action area.")
     
     # RIGHT COLUMN: CapEx/Util (top) + Deflation (bottom) — tight vertical stack
     with col2:
