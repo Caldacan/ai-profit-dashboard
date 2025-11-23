@@ -108,32 +108,33 @@ with tab1:
         )
         st.plotly_chart(fig1, use_container_width=True)
         
-               # Bottom: H100 Rental Trend + Energy Floor Line
+         # Bottom: H100 Rental Trend + Full 3-Line Warning System
         fig_rental = go.Figure()
         fig_rental.add_trace(go.Scatter(
             name="H100 Rental $/GPU-hr",
             x=data["historical_data"]["Quarter"],
             y=[8.0, 5.5, 3.5, 2.8, 2.4],
             mode="lines+markers",
-            line=dict(color="brown", width=5),
+            line=dict(color="brown", width=6),
             marker=dict(size=10)
         ))
-        # Critical red energy floor line
-        fig_rental.add_hline(
-            y=0.60,
-            line=dict(color="red", width=4, dash="dash"),
-            annotation_text="Energy Cost Floor (~$0.60/hr)",
-            annotation_position="bottom right",
-            annotation_font_color="red",
-            annotation_font_size=14
-        )
+
+        # 3-Line Warning System
+        fig_rental.add_hline(y=0.60, line=dict(color="red",    width=4, dash="dash"),
+            annotation_text="Energy Floor $0.60", annotation_position="bottom right", annotation_font_color="red")
+        fig_rental.add_hline(y=1.65, line=dict(color="orange", width=4, dash="dash"),
+            annotation_text="Full-Cost Breakeven $1.65", annotation_position="bottom right")
+        fig_rental.add_hline(y=2.60, line=dict(color="yellow", width=4, dash="dash"),
+            annotation_text="Debt-Cover Breakeven $2.60", annotation_position="top right", annotation_font_color="gold")
+
         fig_rental = apply_log(fig_rental)
         fig_rental.update_layout(
-            title="H100 Rental Cost Trend (Chanos Signal + Energy Floor)",
+            title="H100 Rental Cost Trend (Chanos Signal + 3-Line Warning System)",
             height=380
         )
         st.plotly_chart(fig_rental, use_container_width=True)
-        st.caption("Rental ~70% YoY drop — still 4× above energy floor. Below $0.60 = losing money on power alone.")
+        st.caption("Rental ~70% YoY drop — now only 8% above debt-cover breakeven (yellow line). "
+                   "Another 8–10% drop = negative cash flow for CRWV/NBIS-style levered players.")
     
     # RIGHT COLUMN: CapEx/Util (top) + Deflation (bottom) — tight vertical stack
     with col2:
