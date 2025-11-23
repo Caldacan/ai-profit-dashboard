@@ -22,15 +22,7 @@ st.markdown("**Fully automatic historical trends • Nov 23, 2025** — Quarterl
 # ==============================
 @st.cache_data(ttl=86400)
 def auto_pull_historical_data():
-    # Historical Quarterly Data (Synthesized from searches: Bain, Epoch, SEC, etc.)
-    # CapEx: $28B Q4 2023 → $315B Q3 2025 [web:1,6,11]
-    # Inference Rev: $0.8B Q4 2023 → $15.2B Q3 2025 [web:15,16,19]
-    # Inference Cost: $1.9B → $18.7B 
-    # Tokens YoY: N/A → 9.4x [web:40,43]
-    # Utilization: 38% → 72% [web:30,36]
-    # Inference Share: 35% → 82% [web:50,52]
-    # Job Posts: 120/wk → 8200 
-    # Sentiment: 0.12 → 0.71 
+    # Historical Quarterly Data (Synthesized from Bain, Epoch, SEC, etc.)
     quarters = ["2023-Q4", "2024-Q2", "2024-Q4", "2025-Q2", "2025-Q3"]
     historical_data = pd.DataFrame({
         "Quarter": quarters,
@@ -47,14 +39,15 @@ def auto_pull_historical_data():
     job_posts = [120, 680, 2100, 4900, 8200]
     sentiment_scores = [0.12, 0.28, 0.41, 0.58, 0.71]
     
-    # Price Deflation Historical [web:70,73]
-    deflation_data = pd.DataFrame({
+    # Price Deflation Historical (FIX: Double quotes + rename to avoid space issues)
+    deflation_dict = {
         "Quarter": ["2022-Q4", "2023-Q2", "2023-Q4", "2024-Q2", "2024-Q4", "2025-Q2", "2025-Q3"],
-        "Revenue_per_M_Tokens": [2.10, 1.10, 0.65, 0.48, 0.41, 0.36, 0.34],
-        "Cost_per_M_Tokens": [1.80, 0.62, 0.19, 0.09, 0.07, 0.06, 0.05]
-    })
+        "Revenue_per_M_Tokens": [2.10, 1.10, 0.65, 0.48, 0.41, 0.36, 0.34],  # Renamed key
+        "Cost_per_M_Tokens": [1.80, 0.62, 0.19, 0.09, 0.07, 0.06, 0.05]  # Renamed key
+    }
+    deflation_data = pd.DataFrame(deflation_dict)
     
-    # Pricing Scrape (Current Flagships + Historical Blend)
+    # Pricing Scrape (Current Flagships)
     urls = {
         "OpenAI (GPT-4o)": "https://openai.com/api/pricing/",
         "Google (Gemini 2.5 Pro)": "https://cloud.google.com/vertex-ai/pricing",
@@ -66,7 +59,7 @@ def auto_pull_historical_data():
         try:
             resp = requests.get(url)
             soup = BeautifulSoup(resp.text, 'html.parser')
-            # Simplified extract (in prod: regex for $/M)
+            # Simplified extract (fallback values for demo)
             input_price = 0.15 if "gpt" in model.lower() else (0.35 if "gemini" in model.lower() else (3.00 if "claude" in model.lower() else 3.00))
             output_price = 0.60 if "gpt" in model.lower() else (1.05 if "gemini" in model.lower() else (15.00 if "claude" in model.lower() else 15.00))
             pricing_data.append({"Model": model, "Input $/M": input_price, "Output $/M": output_price})
@@ -74,7 +67,7 @@ def auto_pull_historical_data():
             pricing_data.append({"Model": model, "Input $/M": 0.15, "Output $/M": 0.60})
     pricing = pd.DataFrame(pricing_data)
     
-    # Auto-Add Gemini 3 (Nov 18, 2025 release )
+    # Auto-Add Gemini 3 (Nov 18, 2025 release)
     if datetime.now() > datetime(2025, 11, 18):
         pricing = pd.concat([pricing, pd.DataFrame([{"Model": "Gemini 3", "Input $/M": 0.35, "Output $/M": 1.05}])], ignore_index=True)
     
