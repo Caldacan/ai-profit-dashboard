@@ -108,7 +108,7 @@ with tab1:
         )
         st.plotly_chart(fig1, use_container_width=True)
         
-        # Bottom: H100 Rental Trend — Fixed Labels (No Compression, Full Resolution)
+        # Bottom: H100 Rental Trend — Fixed Labels (Staggered + No Compression)
         fig_rental = go.Figure()
         
         # Monthly data (real averages 2024–Nov 2025)
@@ -126,19 +126,21 @@ with tab1:
             marker=dict(size=11)
         ))
 
-        # 3-Line Warning System — left-anchored, smaller font, no right crowding
+        # 3-Line Warning System — staggered y-anchor to avoid bunching
         fig_rental.add_hline(
             y=0.60, 
             line=dict(color="red", width=5, dash="dash"),
             annotation_text="Energy Floor $0.60", 
-            annotation_position="left", 
-            annotation_font=dict(color="red", size=12)  # Smaller to avoid intrusion
+            annotation_position="left",
+            annotation_y=0.1,  # Bottom anchor
+            annotation_font=dict(color="red", size=12)
         )
         fig_rental.add_hline(
             y=1.65, 
             line=dict(color="#FF8C00", width=5, dash="dash"),
             annotation_text="Full-Cost Breakeven $1.65", 
             annotation_position="left",
+            annotation_y=0.35,  # Mid-low anchor
             annotation_font=dict(color="#FF8C00", size=12)
         )
         fig_rental.add_hline(
@@ -146,19 +148,20 @@ with tab1:
             line=dict(color="#FFD700", width=5, dash="dash"),
             annotation_text="Debt-Cover Breakeven $2.60", 
             annotation_position="left",
+            annotation_y=0.6,  # Mid-high anchor
             annotation_font=dict(color="#B8860B", size=12)
         )
 
         fig_rental = apply_log(fig_rental)
         fig_rental.update_layout(
             title="H100 Rental Cost Trend — Monthly (Chanos Signal + 3-Line Warning)",
-            height=450,   # Extra vertical for resolution
+            height=450,   # High-res vertical
             yaxis_title="$/GPU-hr",
-            yaxis=dict(range=[-1, 1]),  # Tight log: $0.10–$10 focus (expands data space)
-            margin=dict(r=80, l=80, t=80, b=80)  # Balanced margins — right room for ticks
+            yaxis=dict(range=[-1, 1]),  # Tight log focus
+            margin=dict(l=100, r=80, t=80, b=80)  # Left margin for label space
         )
         st.plotly_chart(fig_rental, use_container_width=True)
-        st.caption("Nov 2025 avg = $2.37 — 8% above debt-cover. Tight range + left labels = full data visibility.")
+        st.caption("Nov 2025 avg = $2.37 — 8% above debt-cover. Staggered labels + left margin = full data visibility.")
     
     # RIGHT COLUMN: CapEx/Util (top) + Deflation (bottom) — tight vertical stack
     with col2:
