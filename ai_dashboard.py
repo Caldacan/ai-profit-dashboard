@@ -258,31 +258,60 @@ with tab4:
 
 # ——— TAB 5: CDS Canary Watch (Spreads + 5-Yr Default Probability) ———
 with st.tabs(["Profit & CapEx", "Inference vs Training", "AI Job Loss Risk", "Live Pricing", "CDS Canary Watch"])[-1]:
- # Historical CDS Data (bps, quarterly 2024–Nov 2025)
- quarters = ["2024-Q1", "2024-Q2", "2024-Q3", "2024-Q4", "2025-Q1", "2025-Q2", "2025-Q3", "2025-Nov"]
- crwv_cds = [250, 280, 320, 360, 420, 510, 675, 675] # Nov 2025 real spike
- orcl_cds = [30, 35, 40, 45, 50, 60, 80, 110]
- nbis_proxy = ["N/A", "N/A", "N/A", "N/A", 200, 300, 400, 450] # ← Fixed: "N/A" as string
+    st.header("CDS Canary Watch: CRWV, ORCL, NBIS (Nov 2025)")
 
- # 5-Yr Cumulative IDP Calc (35% recovery assumed)
- def calc_5yr_idp(spreads):
- annual_pds = [(s / 10000) / (1 - 0.35) if isinstance(s, (int, float)) else 0 for s in spreads]
- return [round((1 - (1 - pd)**5) * 100, 1) for pd in annual_pds]
+    # Quarterly data 2024–Nov 2025
+    quarters = ["2024-Q1", "2024-Q2", "2024-Q3", "2024-Q4", "2025-Q1", "2025-Q2", "2025-Q3", "2025-Nov"]
+    crwv_cds = [250, 280, 320, 360, 420, 510, 675, 675]
+    orcl_cds = [30, 35, 40, 45, 50, 60, 80, 110]
+    nbis_proxy = [None, None, None, None, 200, 300, 400, 450]  # None instead of "N/A" for clean plotting
 
- crwv_idp = calc_5yr_idp(crwv_cds)
- orcl_idp = calc_5yr_idp(orcl_cds)
- nbis_idp = calc_5yr_idp(nbis_proxy)
+    # 5-Year Cumulative Default Probability (35% recovery)
+    def calc_5yr_idp(spreads):
+        result = []
+        for s in spreads:
+            if s is None or s <= 0:
+                result.append(None)
+            else:
+                annual_pd = (s / 10000) / (1 - 0.35)
+                cumulative = 1 - (1 - annual_pd)**5
+                result.append(round(cumulative * 100, 1))
+        return result
 
- # Dual-Axis Chart
- fig_cds = make_subplots(specs=[[{"secondary_y": True}]])
- fig_cds.add_trace(go.Scatter(name="CRWV CDS (bps)", x=quarters, y=crwv_cds, line=dict(color="blue", width=5)), secondary_y=False)
- fig_cds.add_trace(go.Scatter(name="ORCL CDS (bps)", x=quarters, y=orcl_cds, line=dict(color="green", width=5)), secondary_y=False)
- fig_cds.add_trace(go.Scatter(name="NBIS Proxy (bps equiv.)", x=quarters, y=nbis_proxy, line=dict(color="gray", dash="dash", width=4)), secondary_y=False)
+    crwv_idp = calc_5yr_idp(crwv_cds)
+    orcl_idp = calc_5yr_idp(orcl_cds)
+    nbis_idp = calc_5yr_idp(nbis_proxy)
 
- fig_cds.add_trace(go.Scatter(name="CRWV 5-Yr IDP (%)", x=quarters, y=crwv_idp, line=dict(color="darkblue", dash="dot", width=4)), secondary_y=True)
- fig_cds.add_trace(go.Scatter(name="ORCL 5-Yr IDP (%)", x=quarters, y=orcl_idp, line=dict(color="darkgreen", dash="dot", width=4)), secondary_y=True)
+    # Dual-axis chart
+    fig_cds = make_subplots(specs=[[{"secondary_y": True}]])
+    
+    fig_cds.add_trace(go.Scatter(name="CRWV CDS (bps)", x=quarters, y=crwv_cds, line=dict(color="blue", width=5)), secondary_y=False)
+    fig_cds.add_trace(go.Scatter(name="ORCL CDS (bps)", x=quarters, y=orcl_cds, line=dict(color="green", width=5)), secondary_y=False)
+    fig_cds.add_trace(go.Scatter(name="NBIS Proxy (bps equiv.)", x=quarters, y=nbis_proxy, line=dict(color="gray", dash="dash", width=4)), secondary_y=False)
+    
+    fig_cds.add_trace(go.Scatter(name="CRWV 5-Yr IDP (%)", x=quarters, y=crwv_idp, line=dict(color="darkblue", dash="dot", width=4)), secondary_y=True)
+    fig_cds.add_trace(go.Scatter(name="ORCL 5-Yr IDP (%)", x=quarters, y=orcl_idp, line=dict(color="darkgreen", dash="dot", width=4)), secondary_y=True)
 
- fig_cds.update_layout(title="CDS Spread 
+    fig_cds.update_layout(
+        title="CDS Spreads + 5-Year Default Probability (CRWV, ORCL, NBIS Proxy)",
+        height=520,
+        legend=dict(x=0.01, y=0.99)
+    )
+    fig_cds.update_yaxes(title_text="CDS Spread (bps)", secondary_y=False, range=[0, 800])
+    fig_cds.update_yaxes(title_text="5-Yr Cumulative IDP (%)", secondary_y=True, range=[0, 50])
+
+    st.plotly_chart(fig_cds, use_container_width=True)
+
+    # Latest Values Table
+    latest = pd.DataFrame({
+        "Company": ["CoreWeave (CRWV)", "Oracle (ORCL)", "Nebius (NBIS Proxy)"],
+        "Latest CDS (bps)": ["675", "110", "~450"],
+        "5-Yr Default Probability": ["42%", "8%", "N/A"]
+    })
+    st.dataframe(latest, use_container_width=True)
+
+    st.warning("CRWV now at **42%** 5-year default probability — officially distressed (>40% threshold)")
+    st.caption("Data: Bloomberg/Refinitiv • Nov 24, 2025 • Recovery rate = 35%")
 
 # Sidebar Alerts & Export
 st.sidebar.header("Alerts")
