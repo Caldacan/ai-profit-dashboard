@@ -200,54 +200,54 @@ with tab2:
     st.plotly_chart(fig3, use_container_width=True)
     st.success("Inference at 82% Q3 2025 — Dominates since mid-2024 ")
 
-# Tab 3: Job Loss Historical
+# ——— TAB 3: AI Job Loss Risk + Gini Overlay ———
 with tab3:
     col3, col4 = st.columns(2)
     with col3:
         fig4 = go.Figure()
-        fig4.add_trace(go.Bar(name="Weekly X Posts", x=data["historical_data"].Quarter, y=data["job_posts"], marker_color="darkred"))
+        fig4.add_trace(go.Bar(name="Weekly X Posts", x=data["historical_data"]["Quarter"], y=data["job_posts"], marker_color="darkred"))
         fig4 = apply_log(fig4)
-        fig4.update_layout(title="AI Job Loss Posts on X (Weekly, 2023–2025)")
+        fig4.update_layout(title="AI Job Loss Complaints on X (weekly)")
         st.plotly_chart(fig4, use_container_width=True)
     with col4:
         fig5 = go.Figure()
-        fig5.add_trace(go.Scatter(name="Negative Sentiment", x=data["historical_data"].Quarter, y=data["sentiment_scores"], mode="lines+markers", line=dict(color="crimson", width=5)))
-        fig5.update_layout(title="Sentiment Score (0–1, higher=negative, 2023–2025)", yaxis_range=[0,1])
+        fig5.add_trace(go.Scatter(name="Negative Sentiment", x=data["historical_data"]["Quarter"], y=data["sentiment_scores"], mode="lines+markers", line=dict(color="crimson", width=5)))
+        fig5.update_layout(title="Sentiment Score (higher = more negative)", yaxis_range=[0,1])
         st.plotly_chart(fig5, use_container_width=True)
-    st.warning("8200 weekly posts Q3 2025 • Sentiment 0.71 — Political risk high ")
+    st.warning("Political risk rising — 8200 weekly posts in Nov 2025")
 
-        # New: Gini Coefficient Overlay (Political Risk Amplifier)
-        fig_gini = make_subplots(specs=[[{"secondary_y": True}]])
-        
-        # Job loss posts (left axis - bars)
-        fig_gini.add_trace(go.Bar(
-            name="Weekly AI Job Loss Posts (X)",
-            x=data["historical_data"]["Quarter"],
-            y=data["job_posts"],
-            marker_color="darkred",
-            yaxis="y"
-        ), secondary_y=False)
-        
-        # Gini coefficient (right axis - purple line)
-        gini_values = [0.410, 0.412, 0.414, 0.417, 0.419]  # World Bank + FRED + 2025 projection
-        fig_gini.add_trace(go.Scatter(
-            name="U.S. Gini Coefficient",
-            x=data["historical_data"]["Quarter"],
-            y=gini_values,
-            mode="lines+markers",
-            line=dict(color="purple", width=6),
-            marker=dict(size=10)
-        ), secondary_y=True)
-        
-        fig_gini.update_layout(
-            title="AI Job Loss Complaints vs U.S. Inequality (Gini)",
-            height=480
-        )
-        fig_gini.update_yaxes(title_text="Weekly Posts", secondary_y=False, range=[0, 9000])
-        fig_gini.update_yaxes(title_text="Gini (higher = worse)", secondary_y=True, range=[0.40, 0.43])
-        
-        st.plotly_chart(fig_gini, use_container_width=True)
-        st.warning("Gini projected to hit 0.423 by EOY 2025 — highest since 1930s if trend holds")
+    # New: Gini Coefficient Overlay (Political Risk Amplifier)
+    fig_gini = make_subplots(specs=[[{"secondary_y": True}]])
+    
+    # Job loss posts (left axis - bars)
+    fig_gini.add_trace(go.Bar(
+        name="Weekly AI Job Loss Posts (X)",
+        x=data["historical_data"]["Quarter"],
+        y=data["job_posts"],
+        marker_color="darkred",
+        yaxis="y"
+    ), secondary_y=False)
+    
+    # Gini coefficient (right axis - purple line)
+    gini_values = [0.410, 0.412, 0.414, 0.417, 0.419]  # World Bank + FRED + 2025 projection
+    fig_gini.add_trace(go.Scatter(
+        name="U.S. Gini Coefficient",
+        x=data["historical_data"]["Quarter"],
+        y=gini_values,
+        mode="lines+markers",
+        line=dict(color="purple", width=6),
+        marker=dict(size=10)
+    ), secondary_y=True)
+    
+    fig_gini.update_layout(
+        title="AI Job Loss Complaints vs U.S. Inequality (Gini)",
+        height=480
+    )
+    fig_gini.update_yaxes(title_text="Weekly Posts", secondary_y=False, range=[0, 9000])
+    fig_gini.update_yaxes(title_text="Gini (higher = worse)", secondary_y=True, range=[0.40, 0.43])
+    
+    st.plotly_chart(fig_gini, use_container_width=True)
+    st.warning("Gini projected to hit 0.423 by EOY 2025 — highest since 1930s if trend holds")
 
 
 # Tab 4: Live Pricing (w/ Auto-Add)
