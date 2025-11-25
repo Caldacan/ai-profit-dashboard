@@ -86,8 +86,14 @@ def apply_log(fig):
         fig.update_yaxes(type="log")
     return fig
 
-# Tabs
-tab1, tab2, tab3, tab4 = st.tabs(["Profit & CapEx (w/ Deflation)", "Inference vs Training", "AI Job Loss Risk", "Live Pricing"])
+# Define 5 tabs in single row (line ~90 — shorter titles for no wrap)
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "Profit & CapEx", 
+    "Inference vs Training", 
+    "Job Loss Risk", 
+    "Live Pricing", 
+    "CDS Canaries"
+])
 
 # ——— TAB 1: Profit & CapEx + H100 Rental (Balanced 2x2, No Gap Error) ———
 with tab1:
@@ -256,15 +262,14 @@ with tab4:
     if "Gemini 3" in data["pricing"]["Model"].values:
         st.success("Gemini 3 auto-added (Nov 18, 2025 release) ")
 
-# ——— TAB 5: CDS Canary Watch (Spreads + 5-Yr Default Probability) ———
-with st.tabs(["Profit & CapEx", "Inference vs Training", "AI Job Loss Risk", "Live Pricing", "CDS Canary Watch"])[-1]:
-    st.header("CDS Canary Watch: CRWV, ORCL, NBIS (Nov 2025)")
+with tab5:
+    st.header("CDS Canaries: CRWV, ORCL, NBIS (Nov 2025)")
 
     # Quarterly data 2024–Nov 2025
     quarters = ["2024-Q1", "2024-Q2", "2024-Q3", "2024-Q4", "2025-Q1", "2025-Q2", "2025-Q3", "2025-Nov"]
     crwv_cds = [250, 280, 320, 360, 420, 510, 675, 675]
     orcl_cds = [30, 35, 40, 45, 50, 60, 80, 110]
-    nbis_proxy = [None, None, None, None, 200, 300, 400, 450]  # None instead of "N/A" for clean plotting
+    nbis_proxy = [None, None, None, None, 200, 300, 400, 450]
 
     # 5-Year Cumulative Default Probability (35% recovery)
     def calc_5yr_idp(spreads):
@@ -305,12 +310,12 @@ with st.tabs(["Profit & CapEx", "Inference vs Training", "AI Job Loss Risk", "Li
     # Latest Values Table
     latest = pd.DataFrame({
         "Company": ["CoreWeave (CRWV)", "Oracle (ORCL)", "Nebius (NBIS Proxy)"],
-        "Latest CDS (bps)": ["675", "110", "~450"],
-        "5-Yr Default Probability": ["42%", "8%", "N/A"]
+        "Latest CDS (bps)": [675, 110, "~450"],
+        "5-Yr Default Probability": [f"{crwv_idp[-1]}%", f"{orcl_idp[-1]}%", "N/A"]
     })
     st.dataframe(latest, use_container_width=True)
 
-    st.warning("CRWV now at **42%** 5-year default probability — officially distressed (>40% threshold)")
+    st.warning("CRWV at **42%** 5-year default probability — officially distressed (>40% threshold)")
     st.caption("Data: Bloomberg/Refinitiv • Nov 24, 2025 • Recovery rate = 35%")
 
 # Sidebar Alerts & Export
