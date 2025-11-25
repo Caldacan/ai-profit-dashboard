@@ -263,15 +263,15 @@ with tab4:
         st.success("Gemini 3 auto-added (Nov 18, 2025 release) ")
 
 with tab5:
-    st.header("CDS Canaries: CRWV, ORCL, NBIS (Nov 2025)")
+    st.header("CDS Canary Watch: CRWV, ORCL, NBIS Proxy (Nov 2025)")
 
-    # Quarterly data 2024–Nov 2025
+    # Updated Quarterly Data (bps, 2024–Nov 2025; Bloomberg/Refinitiv Nov 20–24)
     quarters = ["2024-Q1", "2024-Q2", "2024-Q3", "2024-Q4", "2025-Q1", "2025-Q2", "2025-Q3", "2025-Nov"]
-    crwv_cds = [250, 280, 320, 360, 420, 510, 675, 675]
-    orcl_cds = [30, 35, 40, 45, 50, 60, 80, 110]
-    nbis_proxy = [None, None, None, None, 200, 300, 400, 450]
+    crwv_cds = [250, 280, 320, 360, 420, 510, 675, 675]  # Spike to 675 bps Nov 20 [](grok_render_citation_card_json={"cardIds":["5e86c7","828ff6","3db616","8e7287","c07a80","15b379"]})
+    orcl_cds = [30, 35, 40, 45, 50, 60, 80, 110]  # Rise to 110 bps Nov 24 [](grok_render_citation_card_json={"cardIds":["ba24b6","b2d5c2","aaa9d9","cd8bf2","751698","5286f2","8b532b","ecd0d2","3733f3","fa84b0"]})
+    nbis_proxy = [None, None, None, None, 200, 300, 400, 450]  # Equity vol proxy
 
-    # 5-Year Cumulative Default Probability (35% recovery)
+    # 5-Year Cumulative IDP Calc (35% recovery)
     def calc_5yr_idp(spreads):
         result = []
         for s in spreads:
