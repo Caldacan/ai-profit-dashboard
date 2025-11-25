@@ -206,6 +206,24 @@ with tab2:
     st.plotly_chart(fig3, use_container_width=True)
     st.success("Inference at 82% Q3 2025 — Dominates since mid-2024 ")
 
+# ASIC Share Metric — Stacked Bar in Inference (Added to Tab 2)
+quarters = ["2023-Q4", "2024-Q4", "2025-Q3", "2026-Q4", "2027-Q4"]
+asic_share = [10, 20, 40, 45, 50]  # % inference from ASICs (MarketsandMarkets/Aranca/CNBC est.)
+gpu_share = [90, 80, 60, 55, 50]  # Remainder GPUs (Nvidia dominant)
+
+fig_asic = go.Figure()
+fig_asic.add_trace(go.Bar(name="ASICs (TPU/Trainium/MTIA/Maia)", x=quarters, y=asic_share, marker_color="orange"))
+fig_asic.add_trace(go.Bar(name="GPUs (Nvidia dominant)", x=quarters, y=gpu_share, marker_color="teal"))
+fig_asic.update_layout(
+    title="ASIC Share in AI Inference (% of Hyperscaler Workloads)",
+    barmode="stack",
+    height=400,
+    yaxis_title="Market Share (%)"
+)
+st.plotly_chart(fig_asic, use_container_width=True)
+st.caption("ASICs rising to 50% by 2027 — eroding Nvidia's 90% dominance in inference (MarketsandMarkets/Aranca)")
+st.warning("ASIC share >40% = Nvidia pricing power erosion signal")
+
 # ——— TAB 3: AI Job Loss Risk + Gini Overlay ———
 with tab3:
     col3, col4 = st.columns(2)
