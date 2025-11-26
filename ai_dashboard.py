@@ -185,17 +185,55 @@ with tab1:
         )
         st.plotly_chart(fig2, use_container_width=True)
         
-        # Bottom: Deflation Subplot (stacked directly below, balanced height)
+        # Bottom-Right: Deflation Subplot + YoY Growth Rate Overlay (Deceleration Detector)
         fig_def = make_subplots(specs=[[{"secondary_y": True}]])
-        fig_def.add_trace(go.Scatter(name="Revenue/M Tokens", x=data["deflation_data"]["Quarter"], y=data["deflation_data"]["Revenue_per_M_Tokens"], mode="lines+markers", line=dict(color="green")), secondary_y=False)
-        fig_def.add_trace(go.Scatter(name="Cost/M Tokens", x=data["deflation_data"]["Quarter"], y=data["deflation_data"]["Cost_per_M_Tokens"], mode="lines+markers", line=dict(color="red")), secondary_y=True)
+        
+        # Main lines: Revenue and Cost per M Tokens
+        fig_def.add_trace(go.Scatter(
+            name="Revenue/M Tokens",
+            x=data["deflation_data"]["Quarter"],
+            y=data["deflation_data"]["Revenue_per_M_Tokens"],
+            mode="lines+markers",
+            line=dict(color="green")
+        ), secondary_y=False)
+        fig_def.add_trace(go.Scatter(
+            name="Cost/M Tokens",
+            x=data["deflation_data"]["Quarter"],
+            y=data["deflation_data"]["Cost_per_M_Tokens"],
+            mode="lines+markers",
+            line=dict(color="red")
+        ), secondary_y=False)
+        
+        # New: YoY Growth Rate Overlay (purple line, % change from prior quarter)
+        yoy_growth = [None]  # N/A for first
+        for i in range(1, len(data["deflation_data"])):
+            prior = data["deflation_data"]["Revenue_per_M_Tokens"].iloc[i-1]
+            current = data["deflation_data"]["Revenue_per_M_Tokens"].iloc[i]
+            yoy_growth.append(((current - prior) / prior) * 100)
+        fig_def.add_trace(go.Scatter(
+            name="YoY Revenue Growth Rate (%)",
+            x=data["deflation_data"]["Quarter"].iloc[1:],
+            y=yoy_growth[1:],
+            mode="lines+markers",
+            line=dict(color="purple", dash="dot", width=3),
+            yaxis="y2"  # Secondary secondary for %
+        ), secondary_y=True)
+        
+        # Threshold line for deceleration (439% = 5.39x market growth)
+        fig_def.add_hline(y=439, line_dash="dash", line_color="gray", secondary_y=True,
+            annotation_text="Deceleration Threshold (439%)", annotation_position="top right")
+        
         fig_def = apply_log(fig_def)
         fig_def.update_layout(
-            title="Price Deflation Trend (Blended, 2022–2025)", 
-            height=380  # Matches left bottom for perfect alignment
+            title="Price Deflation Trend + YoY Growth Rate Overlay (2022–2025 Q3)",
+            height=420
         )
+        fig_def.update_yaxes(title_text="$/M Tokens", secondary_y=False)
+        fig_def.update_yaxes(title_text="YoY Growth Rate (%)", secondary_y=True, range=[-100, 500])
+        fig_def.update_yaxes(title_text="YoY Growth Rate (%)", secondary_y=True, overlaying="y", side="right")
+        
         st.plotly_chart(fig_def, use_container_width=True)
-        st.info(f"280x drop since 2022 — Latest Q3 2025: ${data['deflation_data']['Revenue_per_M_Tokens'].iloc[-1]:.2f} rev / ${data['deflation_data']['Cost_per_M_Tokens'].iloc[-1]:.2f} cost per M tokens")
+        st.info(f"280x drop since 2022 — Latest Q3 2025 YoY: {yoy_growth[-1]:.0f}% (watch for <439% deceleration)")
 
 # Tab 2: Inference vs Training Historical
 with tab2:
