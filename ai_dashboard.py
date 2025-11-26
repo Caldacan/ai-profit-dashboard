@@ -102,26 +102,11 @@ with tab1:
     
     # LEFT COLUMN: Revenue (top) + H100 Rental (bottom) — tight vertical stack
     with col1:
-        # Top: Inference Revenue vs Cost (taller for resolution)
-        fig1 = go.Figure()
-        fig1.add_trace(go.Bar(name="Revenue", x=data["historical_data"]["Quarter"], y=data["historical_data"]["Inference_Revenue_B"], marker_color="#10a337"))
-        fig1.add_trace(go.Bar(name="Cost", x=data["historical_data"]["Quarter"], y=data["historical_data"]["Inference_Cost_B"], marker_color="#c91a1a"))
-        fig1 = apply_log(fig1)
-        fig1.update_layout(
-            barmode="group", 
-            title="Inference Revenue vs Cost ($B TTM, 2023–2025)", 
-            height=420  # Ample vertical range for bars
-        )
-        st.plotly_chart(fig1, use_container_width=True)
-        
-        # Bottom: H100 Rental Trend — Fixed Labels (No Cutoff, Full Display)
+        # Bottom: H100 Rental Trend — Cleaner Labels & Expanded Range
         fig_rental = go.Figure()
         
-        # Monthly data (real averages 2024–Nov 2025)
-        months = ["2024-01", "2024-04", "2024-07", "2024-10", 
-                  "2025-01", "2025-04", "2025-07", "2025-10", "2025-11"]
-        prices = [8.50, 7.20, 5.80, 4.10, 
-                  3.60, 3.10, 2.80, 2.50, 2.37]   # Nov 2025 real avg
+        months = ["2024-01", "2024-04", "2024-07", "2024-10", "2025-01", "2025-04", "2025-07", "2025-10", "2025-11"]
+        prices = [8.50, 7.20, 5.80, 4.10, 3.60, 3.10, 2.80, 2.50, 2.37]
         
         fig_rental.add_trace(go.Scatter(
             name="H100 Rental $/GPU-hr (monthly avg)",
@@ -132,45 +117,24 @@ with tab1:
             marker=dict(size=11)
         ))
 
-        # 3-Line Warning System — shorter text, smaller font, further left (no cutoff)
-        fig_rental.add_hline(
-            y=0.60, 
-            line=dict(color="red", width=5, dash="dash"),
-            annotation_text="Energy $0.60",  # Shorter text
-            annotation_position="left",
-            annotation_x=0.01,  # Further left
-            annotation_y=0.1,
-            annotation_font=dict(color="red", size=11)
-        )
-        fig_rental.add_hline(
-            y=1.65, 
-            line=dict(color="#FF8C00", width=5, dash="dash"),
-            annotation_text="Full-Cost $1.65",  # Shorter
-            annotation_position="left",
-            annotation_x=0.01,
-            annotation_y=0.35,
-            annotation_font=dict(color="#FF8C00", size=11)
-        )
-        fig_rental.add_hline(
-            y=2.60, 
-            line=dict(color="#FFD700", width=5, dash="dash"),
-            annotation_text="Debt $2.60",  # Shortest
-            annotation_position="left",
-            annotation_x=0.01,
-            annotation_y=0.6,
-            annotation_font=dict(color="#B8860B", size=11)
-        )
+        # Warnings with smaller font, further left
+        fig_rental.add_hline(y=0.60, line=dict(color="red", width=5, dash="dash"),
+            annotation_text="Energy $0.60", annotation_position="left", annotation_x=0.005, annotation_y=0.1, annotation_font=dict(color="red", size=10))
+        fig_rental.add_hline(y=1.65, line=dict(color="#FF8C00", width=5, dash="dash"),
+            annotation_text="Full-Cost $1.65", annotation_position="left", annotation_x=0.005, annotation_y=0.35, annotation_font=dict(color="#FF8C00", size=10))
+        fig_rental.add_hline(y=2.60, line=dict(color="#FFD700", width=5, dash="dash"),
+            annotation_text="Debt $2.60", annotation_position="left", annotation_x=0.005, annotation_y=0.6, annotation_font=dict(color="#B8860B", size=10))
 
         fig_rental = apply_log(fig_rental)
         fig_rental.update_layout(
             title="H100 Rental Cost Trend — Monthly (Chanos Signal + 3-Line Warning)",
             height=450,
             yaxis_title="$/GPU-hr",
-            yaxis=dict(range=[-1, 1]),
-            margin=dict(l=140, r=80, t=80, b=80)  # Extra left for label buffer
+            yaxis=dict(range=[-0.5, 1]),  # Expanded focus: $0.3–$10
+            margin=dict(l=120, r=80, t=80, b=80)  # Balanced for ticks
         )
         st.plotly_chart(fig_rental, use_container_width=True)
-        st.caption("Nov 2025 avg = $2.37 — 8% above debt line. Shorter labels + left buffer = full display.")
+        st.caption("Nov 2025 avg = $2.37 — 8% above debt-cover. Expanded range = full data visibility.")
     
         # Top: CapEx vs Utilization Subplot (unchanged)
         fig2 = make_subplots(specs=[[{"secondary_y": True}]])
@@ -210,6 +174,31 @@ with tab1:
         )
         st.plotly_chart(fig_yoy, use_container_width=True)
         st.info(f"Latest Q3 2025 YoY: {yoy_growth[-1]:.0f}% — Watch for sustained <-30% while token growth <8–10x (market deceleration)")
+
+with col2:
+        # Bottom: Deflation Dual-Lines (Log, Expanded)
+        fig_def = make_subplots(specs=[[{"secondary_y": True}]])
+        fig_def.add_trace(go.Scatter(name="Revenue/M Tokens", x=data["deflation_data"]["Quarter"], y=data["deflation_data"]["Revenue_per_M_Tokens"], mode="lines+markers", line=dict(color="green")), secondary_y=False)
+        fig_def.add_trace(go.Scatter(name="Cost/M Tokens", x=data["deflation_data"]["Quarter"], y=data["deflation_data"]["Cost_per_M_Tokens"], mode="lines+markers", line=dict(color="red")), secondary_y=True)
+        fig_def = apply_log(fig_def)
+        fig_def.update_layout(title="Price Deflation Trend (Blended, 2022–2025)", height=380)
+        st.plotly_chart(fig_def, use_container_width=True)
+        
+        # YoY Growth Rate Bar (Linear, Separate for Clarity)
+        fig_yoy = go.Figure()
+        yoy_growth = [None]
+        for i in range(1, len(data["deflation_data"])):
+            prior = data["deflation_data"]["Revenue_per_M_Tokens"].iloc[i-1]
+            current = data["deflation_data"]["Revenue_per_M_Tokens"].iloc[i]
+            growth_rate = ((current - prior) / prior) * 100
+            yoy_growth.append(growth_rate)
+        quarters_yoy = data["deflation_data"]["Quarter"].iloc[1:]
+        fig_yoy.add_trace(go.Bar(name="YoY Revenue Growth Rate (%)", x=quarters_yoy, y=yoy_growth[1:], marker_color="purple"))
+        fig_yoy.add_hline(y=-30, line_dash="dash", line_color="red", annotation_text="-30% Deceleration Threshold", annotation_position="bottom right")
+        fig_yoy.update_layout(title="YoY Revenue per M Tokens Growth Rate (Linear)", yaxis_title="Growth Rate (%)", height=200, showlegend=False)
+        st.plotly_chart(fig_yoy, use_container_width=True)
+        st.info(f"Latest Q3 2025 YoY: {yoy_growth[-1]:.0f}% — Watch for sustained < -30% with token growth <8–10x")
+
 
 # Tab 2: Inference vs Training Historical
 with tab2:
@@ -332,7 +321,7 @@ with tab5:
     fig_cds.update_layout(
         title="CDS Spreads + 5-Year Default Probability (CRWV, ORCL, NBIS Proxy)",
         height=520,
-        legend=dict(x=0.01, y=0.99)
+        legend=dict(x=0.02, y=0.98, font=dict(size=10))  # Smaller legend, higher y
     )
     fig_cds.update_yaxes(title_text="CDS Spread (bps)", secondary_y=False, range=[0, 800])
     fig_cds.update_yaxes(title_text="5-Yr Cumulative IDP (%)", secondary_y=True, range=[0, 50])
